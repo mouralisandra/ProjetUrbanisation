@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  customer-data-service:
+    build:
+      context: ./CustomerDataService 
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - GO_ENV=production
+    networks:
+      - go-api-network
+
+  documents-service:
+    build:
+      context: ./DocumentsService 
+      dockerfile: Dockerfile
+    ports:
+      - "7000:7000"  
+    environment:
+      - GO_ENV=production
+    networks:
+      - go-api-network
+
+networks:
+  go-api-network:
+    driver: bridge
