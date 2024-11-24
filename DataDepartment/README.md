@@ -1,7 +1,6 @@
 # Simple GO Lang REST API
 
 > Simple CRUD RESTful API for Urbanisation project
-![Architectural View](https://github.com/mouralisandra/Data-Management-REST-API/blob/main/architecturalView.png)
 
 ## Quick Start
 

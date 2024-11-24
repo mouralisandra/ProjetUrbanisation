@@ -1,9 +1,4 @@
 > Elli mayekhdemch to netfehmou ^^
 
+![Architectural View](https://github.com/mouralisandra/Data-Management-REST-API/blob/main/architecturalView.png)
 
-git init
-git add .
-git commit -m "first commit"
-git branch -M main
-git remote add origin https://github.com/mouralisandra/ProjetUrbanisation.git
-git push -u origin main
