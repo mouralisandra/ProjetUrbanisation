@@ -1,0 +1,78 @@
+#%RAML 1.0
+resourceTypes:
+  Collection:
+    get:
+      description: Retrieve all <<itemPlural>>
+      responses:
+        200:
+          body:
+            application/json:
+              type: <<item>>[]
+    post:
+      description: Create a new <<item>>
+      body:
+        application/json:
+          type: <<item>>
+      responses:
+        201:
+          description: Successfully created
+  Member:
+    get:
+      description: Retrieve a specific <<item>> by ID
+      responses:
+        200:
+          body:
+            application/json:
+              type: <<item>>
+        404:
+          description: Not found
+    delete:
+      description: Delete a specific <<item>> by ID
+      responses:
+        204:
+          description: Successfully deleted
+    put:
+      description: Update a specific <<item>> by ID
+      body:
+        application/json:
+          type: <<item>>
+      responses:
+        200:
+          description: Successfully updated
+
+title: FlightService API
+version: v1
+baseUri: /flightservice
+types:
+  Flight:
+    properties:
+      id: string
+      departureCity: string
+      arrivalCity: string
+      departureTime: datetime
+      arrivalTime: datetime
+      airline: string
+      price: Price
+    example:
+      id: "1"
+      departureCity: "New York"
+      arrivalCity: "Los Angeles"
+      departureTime: "2024-11-25T08:00:00Z"
+      arrivalTime: "2024-11-25T11:00:00Z"
+      airline: "Delta"
+      price:
+        amount: 299.99
+        currency: USD
+
+  Price:
+    properties:
+      amount: number
+      currency: string
+    example:
+      amount: 299.99
+      currency: USD
+
+/flights:
+  type: { Collection: { item: Flight, itemPlural: flights } }
+  /{id}:
+    type: { Member: { item: Flight } }
