@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+      xmlns="http://www.mulesoft.org/schema/mule/core"
+      xmlns:http="http://www.mulesoft.org/schema/mule/http"
+      xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+        http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+        http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+
+    <!-- Service Configurations -->
+    <http:listener-config name="data-api-listener">
+        <http:listener-connection host="0.0.0.0" port="8084"/>
+    </http:listener-config>
+
+    <http:request-config name="document-service">
+        <http:request-connection host="localhost" port="7000"/>
+    </http:request-config>
+
+    <http:request-config name="customer-service">
+        <http:request-connection host="localhost" port="8000"/>
+    </http:request-config>
+
+    <!-- Document Operations -->
+    <flow name="create-document">
+        <http:listener config-ref="data-api-listener" path="/documents"/>
+        <ee:transform doc:id="3ffe426f-641b-4de8-bc29-77e9d732f065">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/java
+---
+{
+	id: payload.ID,
+	isbn: payload.Isbn,
+	title: payload.Title,
+	author: {
+		firstname: payload.Author.Firstname,
+		lastname: payload.Author.Lastname
+	}
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+        <http:request config-ref="document-service" 
+                      method="POST" 
+                      path="/documents"/>
+    </flow>
+
+    <flow name="get-document">
+        <http:listener config-ref="data-api-listener" path="/documents/{id}"/>
+        <http:request config-ref="document-service" 
+                      method="GET" 
+                      path="/documents/{id}">
+			<http:uri-params ><![CDATA[#[output application/java
+---
+{
+	id : attributes.uriParams.id
+}]]]></http:uri-params>
+		</http:request>
+    </flow>
+
+    <!-- Customer Operations -->
+    <flow name="create-customer">
+        <http:listener config-ref="data-api-listener" path="/customers"/>
+        <ee:transform doc:id="12d0f4dd-064c-4fb1-9b51-d3f3b2533e72">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/java
+---
+{
+	id: payload.ID,
+	isbn: payload.Isbn,
+	title: payload.Title,
+	author: {
+		firstname: payload.Author.Firstname,
+		lastname: payload.Author.Lastname
+	}
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+        <http:request config-ref="customer-service" 
+                      method="POST" 
+                      path="/customers"/>
+    </flow>
+
+    <flow name="get-customer">
+        <http:listener config-ref="data-api-listener" path="/customers/{id}"/>
+        <http:request config-ref="customer-service" 
+                      method="GET" 
+                      path="/customers/{id}">
+			<http:uri-params ><![CDATA[#[output application/java
+---
+{
+	id : attributes.uriParams.id
+}]]]></http:uri-params>
+		</http:request>
+    </flow>
+
+    <!-- Synchronization Flow -->
+    <flow name="sync-document-customer">
+        <http:listener config-ref="data-api-listener" path="/sync/{id}"/>
+        
+        <!-- Get Document -->
+        <http:request config-ref="document-service" 
+                      method="GET" 
+                      path="/documents/{id}">
+			<http:uri-params ><![CDATA[#[output application/java
+---
+{
+	id : attributes.uriParams.id
+}]]]></http:uri-params>
+		</http:request>
+        
+        <!-- Store response -->
+        <set-variable variableName="documentData" value="#[payload]"/>
+        
+        <!-- Transform and sync to Customer service -->
+        <ee:transform doc:id="52bb6dd4-5be7-4303-8abe-0b17295a317b">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+                output application/json
+                ---
+                {
+                    id: vars.documentData.ID,
+                    isbn: vars.documentData.Isbn,
+                    title: vars.documentData.Title,
+	author: {
+		firstname: vars.documentData.Author.Firstname,
+		lastname: vars.documentData.Author.Lastname
+	}
+}                ]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+        
+        <http:request config-ref="customer-service" 
+                      method="POST" 
+                      path="/customers"/>
+    </flow>
+
+</mule>

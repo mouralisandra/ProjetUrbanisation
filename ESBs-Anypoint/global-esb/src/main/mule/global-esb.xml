@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+      xmlns="http://www.mulesoft.org/schema/mule/core"
+      xmlns:http="http://www.mulesoft.org/schema/mule/http"
+      xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+      xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+        http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+        http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee/core.xsd">
+
+    <!-- Global Listener Config -->
+    <http:listener-config name="global-listener">
+        <http:listener-connection host="0.0.0.0" port="8090"/>
+    </http:listener-config>
+
+    <!-- Internal ESBs and Services Config -->
+    <http:request-config name="internal-esb-documents">
+        <http:request-connection host="localhost" port="8084"/>
+    </http:request-config>
+
+    <http:request-config name="internal-esb-customers">
+        <http:request-connection host="localhost" port="8085"/>
+    </http:request-config>
+
+    <http:request-config name="external-service">
+        <http:request-connection host="api.external-service.com" port="443" protocol="HTTPS"/>
+    </http:request-config>
+
+    <!-- Routing Logic -->
+    <flow name="global-esb-routing">
+        <!-- Listener -->
+        <http:listener config-ref="global-listener" path="/*"/>
+
+        <!-- Routing Logic -->
+        <choice>
+            <!-- Route to Document Service -->
+            <when expression="#[attributes.requestPath startsWith '/documents']">
+                <set-variable variableName="targetConfig" value="8084"/>
+            </when>
+
+            <!-- Route to Customer Service -->
+            <when expression="#[attributes.requestPath startsWith '/customers']">
+                <set-variable variableName="targetConfig" value="8084"/>
+            </when>
+
+            <!-- Route to External Service -->
+            <when expression="#[attributes.requestPath startsWith '/external']">
+                <set-variable variableName="targetConfig" value="external-service"/>
+            </when>
+
+            <!-- Default Error Handling -->
+            <otherwise>
+                <set-payload value="#[{ error: 'No matching route found', status: 404 }]"/>
+                <set-property propertyName="http.status" value="404"/>
+                <break-route/>
+            </otherwise>
+        </choice>
+
+        <!-- Forward the Request -->
+        <http:request config-ref="#[vars.targetConfig]" 
+                      method="#[attributes.method]" 
+                      path="#[attributes.requestPath]">
+            <http:headers><![CDATA[#[attributes.headers]]]></http:headers>
+            <http:query-params><![CDATA[#[attributes.queryParams]]]></http:query-params>
+            <http:body><![CDATA[#[payload]]]></http:body>
+        </http:request>
+    </flow>
+</mule>
