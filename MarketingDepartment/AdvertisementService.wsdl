@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" 
+                  xmlns:tns="http://example.com/advertisement" 
+                  xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" 
+                  xmlns:sch="http://example.com/advertisement/schema" 
+                  targetNamespace="http://example.com/advertisement">
+  <wsdl:types>
+    <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" 
+               xmlns:tns="http://example.com/advertisement" 
+               elementFormDefault="qualified" 
+               targetNamespace="http://example.com/advertisement">
+
+      <xs:element name="createAdvertisementRequest">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="campaignName" type="xs:string"/>
+            <xs:element name="budget" type="xs:double"/>
+            <xs:element name="duration" type="xs:int"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+
+      <xs:element name="createAdvertisementResponse">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="status" type="xs:string"/>
+            <xs:element name="message" type="xs:string"/>
+            <xs:element name="adId" type="xs:string"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+
+    </xs:schema>
+  </wsdl:types>
+
+  <wsdl:message name="createAdvertisementRequest">
+    <wsdl:part name="parameters" element="tns:createAdvertisementRequest"/>
+  </wsdl:message>
+
+  <wsdl:message name="createAdvertisementResponse">
+    <wsdl:part name="parameters" element="tns:createAdvertisementResponse"/>
+  </wsdl:message>
+
+  <wsdl:portType name="AdvertisementPort">
+    <wsdl:operation name="createAdvertisement">
+      <wsdl:input message="tns:createAdvertisementRequest" name="createAdvertisementRequest"/>
+      <wsdl:output message="tns:createAdvertisementResponse" name="createAdvertisementResponse"/>
+    </wsdl:operation>
+  </wsdl:portType>
+
+  <wsdl:binding name="AdvertisementPortSoap11" type="tns:AdvertisementPort">
+    <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+    <wsdl:operation name="createAdvertisement">
+      <soap:operation soapAction=""/>
+      <wsdl:input name="createAdvertisementRequest">
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output name="createAdvertisementResponse">
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+
+  <wsdl:service name="AdvertisementService">
+    <wsdl:port binding="tns:AdvertisementPortSoap11" name="AdvertisementPortSoap11">
+      <soap:address location="http://localhost:8080/advertisementService"/>
+    </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>
