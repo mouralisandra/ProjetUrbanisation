@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions name="AdvertisementService"
+    targetNamespace="http://example.com/advertisement"
+    xmlns:tns="http://example.com/advertisement"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+    xmlns="http://schemas.xmlsoap.org/wsdl/">
+
+    <types>
+        <xsd:schema targetNamespace="http://example.com/advertisement">
+            <xsd:element name="getAdvertisementRequest">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="adId" type="xsd:string"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+
+            <xsd:element name="getAdvertisementResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="adTitle" type="xsd:string"/>
+                        <xsd:element name="adContent" type="xsd:string"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+        </xsd:schema>
+    </types>
+
+    <message name="getAdvertisementRequest">
+        <part name="parameters" element="tns:getAdvertisementRequest"/>
+    </message>
+
+    <message name="getAdvertisementResponse">
+        <part name="parameters" element="tns:getAdvertisementResponse"/>
+    </message>
+
+    <portType name="AdvertisementServicePortType">
+        <operation name="getAdvertisement">
+            <input message="tns:getAdvertisementRequest"/>
+            <output message="tns:getAdvertisementResponse"/>
+        </operation>
+    </portType>
+
+    <binding name="AdvertisementServiceBinding" type="tns:AdvertisementServicePortType">
+        <soap:binding transport="http://schemas.xmlsoap.org/soap/http" style="document"/>
+        <operation name="getAdvertisement">
+            <soap:operation soapAction="http://example.com/advertisement/getAdvertisement"/>
+            <input>
+                <soap:body use="literal"/>
+            </input>
+            <output>
+                <soap:body use="literal"/>
+            </output>
+        </operation>
+    </binding>
+
+    <service name="AdvertisementService">
+        <documentation>Advertisement Service</documentation>
+        <port name="AdvertisementServicePort" binding="tns:AdvertisementServiceBinding">
+            <soap:address location="http://localhost:8081/advertisementService"/>
+        </port>
+    </service>
+</definitions>
