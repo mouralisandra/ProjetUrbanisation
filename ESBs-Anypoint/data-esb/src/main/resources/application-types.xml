@@ -1,0 +1,63 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<types:mule xmlns:types="http://www.mulesoft.org/schema/mule/types">
+  <types:catalog>
+    <types:type name="id" format="java">
+      <types:shape format="raml"><![CDATA[#%RAML 1.0 DataType
+type: string]]></types:shape>
+    </types:type>
+    <types:type name="title" format="java">
+      <types:shape format="raml"><![CDATA[#%RAML 1.0 DataType
+type: string]]></types:shape>
+    </types:type>
+    <types:type name="Isbn" format="java">
+      <types:shape format="raml"><![CDATA[#%RAML 1.0 DataType
+type: string]]></types:shape>
+    </types:type>
+    <types:type name="Auther" format="java">
+      <types:shape format="raml"><![CDATA[#%RAML 1.0 DataType
+type: string]]></types:shape>
+    </types:type>
+    <types:type name="Document" format="json">
+      <types:shape format="weave" example="examples/example.json"><![CDATA[%dw 2.0
+
+type Document = {|
+  ID: String, 
+  Isbn: String, 
+  Title: String, 
+  Author: {|
+    Firstname: String, 
+    Lastname: String
+  |}
+|} {"example": "{\\\"ID\\\":\\\"1\\\",\\\"Isbn\\\":\\\"438227\\\",\\\"Title\\\":\\\"Content of Document1\\\",\\\"Author\\\":{\\\"Firstname\\\":\\\"Sandra\\\",\\\"Lastname\\\":\\\"Mourali\\\"}}"}
+
+]]></types:shape>
+    </types:type>
+  </types:catalog>
+  <types:enrichment select="#3ffe426f-641b-4de8-bc29-77e9d732f065">
+    <types:processor-declaration>
+      <types:input-event>
+        <types:message>
+          <types:payload type="Document"/>
+        </types:message>
+      </types:input-event>
+    </types:processor-declaration>
+  </types:enrichment>
+  <types:enrichment select="#12d0f4dd-064c-4fb1-9b51-d3f3b2533e72">
+    <types:processor-declaration>
+      <types:input-event>
+        <types:message>
+          <types:payload type="Document"/>
+        </types:message>
+      </types:input-event>
+    </types:processor-declaration>
+  </types:enrichment>
+  <types:enrichment select="#52bb6dd4-5be7-4303-8abe-0b17295a317b">
+    <types:processor-declaration>
+      <types:input-event>
+        <types:variables>
+          <types:variable name="documentData" type="Document"/>
+        </types:variables>
+      </types:input-event>
+    </types:processor-declaration>
+  </types:enrichment>
+</types:mule>
