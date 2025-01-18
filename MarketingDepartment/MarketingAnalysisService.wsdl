@@ -1,0 +1,58 @@
+<definitions xmlns="http://schemas.xmlsoap.org/wsdl/" 
+             xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+             xmlns:tns="http://example.com/marketingAnalysis"
+             xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+             targetNamespace="http://example.com/marketingAnalysis">
+  
+  <types>
+    <xsd:schema targetNamespace="http://example.com/marketingAnalysis">
+      <xsd:element name="getPerformanceReportRequest">
+        <xsd:complexType>
+          <xsd:sequence>
+            <xsd:element name="adId" type="xsd:int"/>
+          </xsd:sequence>
+        </xsd:complexType>
+      </xsd:element>
+      <xsd:element name="getPerformanceReportResponse">
+        <xsd:complexType>
+          <xsd:sequence>
+            <xsd:element name="report" type="xsd:string"/>
+          </xsd:sequence>
+        </xsd:complexType>
+      </xsd:element>
+    </xsd:schema>
+  </types>
+  
+  <message name="getPerformanceReportRequest">
+    <part name="parameters" element="tns:getPerformanceReportRequest"/>
+  </message>
+  <message name="getPerformanceReportResponse">
+    <part name="parameters" element="tns:getPerformanceReportResponse"/>
+  </message>
+  
+  <portType name="MarketingAnalysisPortType">
+    <operation name="getPerformanceReport">
+      <input message="tns:getPerformanceReportRequest"/>
+      <output message="tns:getPerformanceReportResponse"/>
+    </operation>
+  </portType>
+  
+  <binding name="MarketingAnalysisSoapBinding" type="tns:MarketingAnalysisPortType">
+    <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+    <operation name="getPerformanceReport">
+      <soap:operation soapAction="http://example.com/marketingAnalysis/getPerformanceReport"/>
+      <input>
+        <soap:body use="literal"/>
+      </input>
+      <output>
+        <soap:body use="literal"/>
+      </output>
+    </operation>
+  </binding>
+  
+  <service name="MarketingAnalysisService">
+    <port name="MarketingAnalysisPort" binding="tns:MarketingAnalysisSoapBinding">
+      <soap:address location="http://localhost:8081/marketingAnalysisService"/>
+    </port>
+  </service>
+</definitions>
