@@ -40,6 +40,10 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
                 <set-variable variableName="targetConfig" value="#['http://localhost:8084' ++ attributes.requestPath]"/>
             </when>
 
+            <when expression="#[attributes.requestPath startsWith '/marketing']">
+                <set-variable variableName="targetConfig" value="#['http://localhost:8085' ++ attributes.requestPath]"/>
+            </when>
+
             <!-- Route to External Service -->
             <when expression="#[attributes.requestPath contains '/report/sales']">
                 <set-variable variableName="targetConfig" value="#['http://localhost:3000' ++ attributes.requestPath]"/>
