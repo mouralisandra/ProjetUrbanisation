@@ -168,31 +168,24 @@ payload map ( payload01 , indexOfPayload01 ) -> {
 		</ee:transform>
     </flow>
     <flow name="get:\flights\(id):flightservice-config">
-        <db:select doc:name="Select" doc:id="9a22aa22-5944-4e29-8a3f-7d9e181d0953" config-ref="Database_Config1"/>
-		<ee:transform doc:name="Transform Message">
-            <ee:variables>
-                <ee:set-variable variableName="id">attributes.uriParams.'id'</ee:set-variable>
-            </ee:variables>
-        </ee:transform>
-        <ee:transform doc:name="Transform Message">
-            <ee:message>
-                <ee:set-payload><![CDATA[%dw 2.0
+		<set-variable value='{"departureTime": "2025-01-20T10:00:00","departureCity": "Tunis","arrivalTime": "2025-01-20T14:00:00",   "id": "FL123","arrivalCity": "Paris", "airline": "Air France"}' doc:name="Set Variable" doc:id="51e8418d-fb15-4d36-b2d5-bcb25af96769" variableName="flight"/>
+		<ee:transform doc:name="Transform Message" doc:id="f79cf461-2ecc-4755-9ad9-2a4efe8742ea" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
 output application/json
 ---
 {
-  id: "1",
-  departureCity: "New York",
-  arrivalCity: "Los Angeles",
-  departureTime: "2024-11-25T08:00:00Z",
-  arrivalTime: "2024-11-25T11:00:00Z",
-  airline: "Delta",
-  price: {
-    amount: 299.99,
-    currency: "USD"
-  }
-} as Object {encoding: "UTF-8", mediaType: "application/json"}]]></ee:set-payload>
-            </ee:message>
-        </ee:transform>
+    departureTime: "2025-01-20T10:00:00",
+    departureCity: "Tunis",
+    arrivalTime: "2025-01-20T14:00:00",
+    id: "FL123",
+    arrivalCity: "Paris",
+    airline: "Air France",
+    price: 1234
+}
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
     </flow>
     <flow name="post:\flights:application\json:flightservice-config">
         <logger level="INFO" message="post:\flights:application\json:flightservice-config" />
