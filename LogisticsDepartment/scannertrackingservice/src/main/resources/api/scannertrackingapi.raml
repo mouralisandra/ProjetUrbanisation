@@ -1,0 +1,16 @@
+#%RAML 1.0
+title: scannertrackingapi
+version: v1
+baseUri: http://localhost:8084
+
+/scannertracking:
+  get:
+    description: "Tracking the scanned entity"
+    responses:
+      200:
+        body:
+          application/json:
+            example: |
+              {
+                "message": "Tracking the scanned entity"
+              }

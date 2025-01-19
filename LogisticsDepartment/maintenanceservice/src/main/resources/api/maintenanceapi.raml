@@ -1,0 +1,16 @@
+#%RAML 1.0
+title: maintenanceapi#%
+version: v1
+baseUri: http://localhost:8082
+
+/maintenanceScheduling:
+  get:
+    description: "Schedules the maintenance"
+    responses:
+      200:
+        body:
+          application/json:
+            example: |
+              {
+                "message": "Scheduling the maintenance"
+              }

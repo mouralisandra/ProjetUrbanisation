@@ -1,0 +1,16 @@
+#%RAML 1.0
+title: baggagetrackingapi
+version: v1
+baseUri: http://localhost:8083
+
+/baggagetracking:
+  get:
+    description: "Tracking the baggage of each customer"
+    responses:
+      200:
+        body:
+          application/json:
+            example: |
+              {
+                "message": "Tracking the baggage of each customer"
+              }

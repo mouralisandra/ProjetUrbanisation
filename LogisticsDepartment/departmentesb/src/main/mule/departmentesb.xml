@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="a4702709-2309-4596-89f2-e9a1f12a278a" >
+		<http:listener-connection host="0.0.0.0" port="8088" />
+	</http:listener-config>
+	<http:request-config name="HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="0ccacee5-bff0-41d8-83f7-15b2a4ddc5d0">
+		<http:request-connection host="localhost" port="8082" />
+	</http:request-config>
+	<http:request-config name="HTTP_Request_configuration1" doc:name="HTTP Request configuration" doc:id="8bd6e581-8ebd-47c9-8e49-1604d67ea16e">
+		<http:request-connection host="localhost" port="8081" />
+	</http:request-config>
+	<http:request-config name="HTTP_Request_configuration2" doc:name="HTTP Request configuration" doc:id="7ad4830c-6421-49a6-b463-ee488f779a51" >
+		<http:request-connection host="localhost" port="8084" />
+	</http:request-config>
+	<http:request-config name="HTTP_Request_configuration3" doc:name="HTTP Request configuration" doc:id="4bd94457-5211-4ee9-af0d-9bf412ae116f" >
+		<http:request-connection host="localhost" port="8083" />
+	</http:request-config>
+	<flow name="departmentesbFlow" doc:id="fd217aa2-920a-4d88-9e1c-b6213a81c141" >
+		<http:listener doc:name="Listener" doc:id="4d0c560e-cde4-42fa-86f7-21688f55e06c" config-ref="HTTP_Listener_config" path="/department/*"/>
+		<logger level="INFO" doc:name="Logger" doc:id="158ac67a-8d1d-4054-a2d0-45759882b40c" />
+		<choice doc:name="Choice" doc:id="06f62ca0-ac12-4ed9-b4f9-5c6d0d7deab7" >
+			<when expression="#[output application/java&#10;---&#10;attributes.relativePath == '/department/maintenanceScheduling']">
+				<http:request method="GET" doc:name="Request" doc:id="5265ed29-fb43-4433-bd7c-c32a8341d5bb" config-ref="HTTP_Request_configuration" path="/maintenanceScheduling"/>
+			</when>
+			<when expression="#[output application/java&#10;---&#10;attributes.relativePath == '/department/logistics']">
+				<http:request method="GET" doc:name="Request" doc:id="385c554b-d9e8-40ca-8c4b-a977d5fdcac2" config-ref="HTTP_Request_configuration1" path="/logistics"/>
+			</when>
+			<when expression="#[output application/java&#10;---&#10;attributes.relativePath == '/department/baggagetracking']">
+				<http:request method="GET" doc:name="Request" doc:id="73cad9e1-84ce-40ab-87ed-ddb192505665" config-ref="HTTP_Request_configuration3" path="/baggagetracking">
+				</http:request>
+			</when>
+			<when expression="#[output application/java&#10;---&#10;attributes.relativePath == '/department/scannertracking']">
+				<http:request method="GET" doc:name="Request" doc:id="5705c1e3-8d98-4bfc-b31c-8fe0f30970d4" config-ref="HTTP_Request_configuration2" path="/scannertracking"/>
+			</when>
+			<otherwise >
+				<ee:transform doc:name="Transform Message" doc:id="7bbefa28-fb5c-4ed8-8754-626104c856c3" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+{
+"error": "Unknown service"
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</otherwise>
+		</choice>
+	</flow>
+</mule>
