@@ -1,0 +1,10 @@
+{
+  "main": "flightservice.raml",
+  "name": "flightservice",
+  "groupId": "e803f5df-347f-4a0d-a97b-98a60fecf2da",
+  "assetId": "flightservice",
+  "version": "1.0.0",
+  "classifier": "raml",
+  "tags": [],
+  "descriptorVersion": "1.0.0"
+}
