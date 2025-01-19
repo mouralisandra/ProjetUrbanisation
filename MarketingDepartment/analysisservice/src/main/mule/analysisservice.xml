@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit-soap="http://www.mulesoft.org/schema/mule/apikit-soap" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/apikit-soap http://www.mulesoft.org/schema/mule/apikit-soap/current/mule-apikit-soap.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
     <http:listener-config name="api-httpListenerConfig2">
-        <http:listener-connection host="0.0.0.0" port="8082"/>
+        <http:listener-connection host="0.0.0.0" port="8083"/>
     </http:listener-config>
     <apikit-soap:config httpStatusVarName="httpStatus" name="soapkit-config" port="MarketingAnalysisServicePort" service="MarketingAnalysisService" wsdlLocation="AnalysisService.wsdl"/>
     <flow name="api-main">
-        <http:listener config-ref="api-httpListenerConfig2" path="/MarketingAnalysisService/MarketingAnalysisServicePort">
+        <http:listener config-ref="api-httpListenerConfig2" path="/marketingAnalysisService">
             <http:response statusCode="#[attributes.additionalTransportData.statusCode default 200]">
                 <http:headers><![CDATA[#[attributes.protocolHeaders default {}]]]></http:headers>
             </http:response>
@@ -38,9 +38,10 @@ ns ns0 http://example.com/marketinganalysis
 {
 	body: {
 		ns0#analyzeCampaignResponse: {
-			ns0#analysisResult: 'Sample Result'
+		ns0#analysisResult: 'Sample Result'
 		}
-	}
+	} write "application/xml",
+	
 }]]></ee:set-payload>
             </ee:message>
         </ee:transform>
