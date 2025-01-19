@@ -14,9 +14,9 @@ func Init() {
 
 // Function to setup routes for the Data service
 func SetupRoutes(r *mux.Router) {
-	r.HandleFunc("/datas", GetDatas).Methods("GET")
-	r.HandleFunc("/datas/{id}", GetData).Methods("GET")
-	r.HandleFunc("/datas", CreateData).Methods("POST")
-	r.HandleFunc("/datas/{id}", UpdateData).Methods("PUT")
-	r.HandleFunc("/datas/{id}", DeleteData).Methods("DELETE")
+	r.HandleFunc("/customers", GetDatas).Methods("GET")
+	r.HandleFunc("/customers/{id}", GetData).Methods("GET")
+	r.HandleFunc("/customers", CreateData).Methods("POST")
+	r.HandleFunc("/customers/{id}", UpdateData).Methods("PUT")
+	r.HandleFunc("/customers/{id}", DeleteData).Methods("DELETE")
 }

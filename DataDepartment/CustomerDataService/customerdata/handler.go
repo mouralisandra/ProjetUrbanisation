@@ -21,14 +21,21 @@ func GetDatas(w http.ResponseWriter, r *http.Request) {
 func GetData(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	params := mux.Vars(r)
+	id := params["id"]
+
 	for _, item := range datas {
-		if item.ID == params["id"] {
+		if item.ID == id {
+			// If ID is found, encode the item and return
 			json.NewEncoder(w).Encode(item)
 			return
 		}
 	}
-	json.NewEncoder(w).Encode(&Data{})
+
+	// If ID is not found, return 400
+	w.WriteHeader(http.StatusBadRequest)
+	json.NewEncoder(w).Encode(map[string]string{"error": "Invalid ID"})
 }
+
 
 // Create new data
 func CreateData(w http.ResponseWriter, r *http.Request) {
