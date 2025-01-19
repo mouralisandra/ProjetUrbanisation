@@ -1,87 +1,50 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:wsc="http://www.mulesoft.org/schema/mule/wsc"
-    xmlns="http://www.mulesoft.org/schema/mule/core"
-    xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xmlns:http="http://www.mulesoft.org/schema/mule/http"
-    xmlns:ws="http://www.mulesoft.org/schema/mule/ws" xsi:schemaLocation="
-http://www.mulesoft.org/schema/mule/ws http://www.mulesoft.org/schema/mule/ws/current/mule-ws.xsd 
-http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd 
-        http://www.mulesoft.org/schema/mule/core 
-        http://www.mulesoft.org/schema/mule/core/current/mule.xsd
-        http://www.mulesoft.org/schema/mule/http 
-        http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
-        http://www.mulesoft.org/schema/mule/ws 
-        http://www.mulesoft.org/schema/mule/ws/current/mule-ws.xsd
+<mule xmlns:wsc="http://www.mulesoft.org/schema/mule/wsc" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
 http://www.mulesoft.org/schema/mule/wsc http://www.mulesoft.org/schema/mule/wsc/current/mule-wsc.xsd">
-
-    <!-- 1) Configure an HTTP Listener so Mule can accept requests on localhost:8080 -->
-    <http:listener-config name="HTTP_Listener_config" host="0.0.0.0" port="8080" doc:name="HTTP Listener Config">
-		<http:listener-connection host="0.0.0.0" port="8083" />
+	<http:listener-config name="HTTP_Listener_configESB" doc:name="HTTP Listener config" doc:id="bd3ac09a-868a-41da-b4d0-c7c79db896a6" >
+		<http:listener-connection host="0.0.0.0" port="8085" />
 	</http:listener-config>
-
-    <!-- 2) Configure a Web Service Consumer for the Advertisement Service -->
-    <ws:consumer-config
-        name="AdvertisementServiceConsumer"
-        wsdlLocation="classpath:AdvertisementService.wsdl"
-        service="AdvertisementService"
-        port="AdvertisementServicePort"
-        serviceAddress="http://localhost:8081/advertisementService"
-        doc:name="Advertisement Service Consumer"/>
-
-    <!-- 3) Configure a Web Service Consumer for the Marketing Analysis Service -->
-    <ws:consumer-config
-        name="MarketingAnalysisServiceConsumer"
-        wsdlLocation="classpath:MarketingAnalysisService.wsdl"
-        service="MarketingAnalysisService"
-        port="MarketingAnalysisServicePort"
-        serviceAddress="http://localhost:8082/marketingAnalysisService"
-        doc:name="Marketing Analysis Service Consumer"/>
-
-    <!-- 4) Flow that orchestrates calls to both services -->
-    <wsc:config name="Web_Service_Consumer_Config1" doc:name="Web Service Consumer Config" doc:id="aa2b8c44-445c-4264-8995-5ccb90ef2fcb" >
-		<wsc:connection wsdlLocation="AdvertisementService.wsdl" service="AdvertisementService" port="AdvertisementServicePort" address="http://localhost:8081/advertisement/get" />
+	<wsc:config name="Web_Service_Consumer_Config1" doc:name="Web Service Consumer Config" doc:id="91ed9dcc-849b-413a-a2d7-b1c641185f3e" >
+		<wsc:connection wsdlLocation="AdvertisementService.wsdl" service="AdvertisementService" port="AdvertisementServicePort" address="http://localhost:8081/advertisementService" />
 	</wsc:config>
-	<wsc:config name="Web_Service_Consumer_Config2" doc:name="Web Service Consumer Config" doc:id="3446bf7a-faca-401d-9c71-5115c9737c9b" >
-		<wsc:connection wsdlLocation="AnalysisService.wsdl" service="MarketingAnalysisService" port="MarketingAnalysisServicePort" address="http://localhost:8082/marketingAnalysisService" />
+	<wsc:config name="Web_Service_Consumer_Config2" doc:name="Web Service Consumer Config" doc:id="4e7ff937-b1e4-4c1e-ab87-e3999a3b4e3b" >
+		<wsc:connection wsdlLocation="AnalysisService.wsdl" service="MarketingAnalysisService" port="MarketingAnalysisServicePort" address="http://localhost:8083/marketingAnalysisService" />
 	</wsc:config>
-	<flow name="OrchestrationFlow">
-        <!-- a) HTTP entry point: e.g. GET http://localhost:8080/orchestrate?adId=XYZ -->
-        <http:listener 
-            doc:name="Entry Point" 
-            config-ref="HTTP_Listener_config" 
-            path="/orchestrate"/>
-
-        <!-- b) Capture 'adId' from query param and store in a variable -->
-        <set-variable variableName="adId" value="#[attributes.queryParams.adId default '123']" doc:name="Set adId Variable"/>
-
-        <!-- c) Call the Advertisement Service to get ad details -->
-
-        <!-- d) Transform the Advertisement Service response to the Marketing Analysis request -->
-        <wsc:consume doc:name="Call Advertisement Service" doc:id="7c0854a1-497b-4751-9f1c-4aa82034991b" config-ref="Web_Service_Consumer_Config1" operation="getAdvertisement">
+	<flow name="marketingdepartmentesbFlow" doc:id="8d14fc88-44cf-4c97-ba44-036a3b5cc556" >
+		<http:listener doc:name="Listener" doc:id="d1443315-d24c-43eb-95f4-d5baef2323be" config-ref="HTTP_Listener_configESB" path="/marketing"/>
+		<set-variable value="#[attributes.queryParams.adId default '123']" doc:name="Set adId Variable" doc:id="3dcfe0e3-baa0-4a88-9666-86ded08fbee1" variableName="adId"/>
+		<wsc:consume doc:name="Call Advertisement Service" doc:id="ef5977ee-98f7-40ff-adeb-b5b55cdf2cd1" config-ref="Web_Service_Consumer_Config1" operation="getAdvertisement">
 			<wsc:message >
 				<wsc:body ><![CDATA[#[output application/xml
+ns ns0 http://example.com/advertisement
 ---
-payload]]]></wsc:body>
+{
+	ns0#getAdvertisementRequest: {
+		adId: vars.adId
+	}
+}]]]></wsc:body>
 			</wsc:message>
 		</wsc:consume>
-		<set-payload doc:name="Prepare Marketing Analysis Request" 
-                     value='#[%dw 2.0&#10;ns ns0 http://example.com/advertisement&#10;---&#10;{&#10;	 "campaignId": "CAMPAIGN-001",&#10;	 "advertisementTitle": payload.body.ns0#getAdvertisementResponse.adTitle,&#10;	 "advertisementContent": payload.body.ns0#getAdvertisementResponse.adContent&#10; }]'/>
-
-        <!-- e) Call the Marketing Analysis Service -->
-
-        <!-- f) Log or transform the final response before returning -->
-        <wsc:consume doc:name="Call Marketing Analysis Service" doc:id="857d7e3c-5fd0-4011-8b95-48b4f0e3e4da" config-ref="Web_Service_Consumer_Config2" operation="analyzeCampaign"/>
-		<logger 
-            message="Final marketing analysis result: #[payload.analysisResult]" 
-            level="INFO" 
-            doc:name="Log Response"/>
-        
-        <!-- g) Return the result to the caller (the HTTP client) -->
-        <set-payload 
-            value="#[%dw 2.0&#10;ns ns0 http://example.com/marketinganalysis&#10;---&#10;payload.body.ns0#analyzeCampaignResponse.analysisResult]" 
-            doc:name="Set HTTP Response"/>
-    </flow>
-
+		<set-payload value='#[%dw 2.0&#10;ns ns0 http://example.com/advertisement&#10;---&#10;{&#10;	 "campaignId": "CAMPAIGN-001",&#10;	 "advertisementTitle": payload.body.ns0#getAdvertisementResponse.adTitle,&#10;	 "advertisementContent": payload.body.ns0#getAdvertisementResponse.adContent&#10; }]' doc:name="Prepare Marketing Analysis Request" doc:id="d23d3ce0-26f3-43a5-b47b-8debd4054ff3" />
+		<wsc:consume doc:name="Call Marketing Analysis Service" doc:id="53e5db75-2bc5-4f9c-b8c3-dbcfef3af200" config-ref="Web_Service_Consumer_Config2" operation="analyzeCampaign">
+			<wsc:message >
+				<wsc:body ><![CDATA[#[output application/xml
+ns ns0 http://example.com/marketinganalysis
+---
+{
+	ns0#analyzeCampaignRequest: {
+		campaignId: payload.campaignId,
+		advertisementTitle: payload.advertisementTitle,
+		advertisementContent: payload.advertisementContent
+	}
+}]]]></wsc:body>
+			</wsc:message>
+		</wsc:consume>
+		<logger level="INFO" doc:name="Log Response" doc:id="915ab1e2-13d8-4428-9617-aa23f364d46a" message="Final marketing analysis result: #[payload.analysisResult]"/>
+		<set-payload value="#[%dw 2.0&#10;ns ns0 http://example.com/marketinganalysis&#10;---&#10;payload.body.ns0#analyzeCampaignResponse.analysisResult]" doc:name="Set HTTP response" doc:id="132cd14c-70a4-432c-9446-fd4181e00e5b" />
+	</flow>
 </mule>
