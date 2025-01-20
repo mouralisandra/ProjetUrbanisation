@@ -92,7 +92,25 @@ output application/java
 	id : attributes.uriParams.id
 }]]]></http:uri-params>
 		</http:request>
-    </flow>
+		<error-handler>
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="38ee3339-8003-4d16-8f3f-7d1d5e26c5c3" >
+				<set-variable value="#[error.errorType.identifier]" doc:name="Set Variable" doc:id="13010e0c-1de0-415b-8670-d01d9af56429" variableName="httpStatus"/>
+				<ee:transform doc:name="Transform Message" doc:id="d4379c01-1998-4aab-9e9c-1f785be23455" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+{
+  "error": "#[error.description]",
+  "details": "#[error.detailedDescription]"
+}
+]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</on-error-propagate>
+		</error-handler>
+    
+</flow>
 
     <!-- Synchronization Flow -->
     <flow name="sync-document-customer">

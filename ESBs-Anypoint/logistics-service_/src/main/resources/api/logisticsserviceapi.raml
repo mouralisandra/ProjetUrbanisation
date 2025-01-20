@@ -1,0 +1,16 @@
+#%RAML 1.0
+title: logisticsServiceAPI
+version: v1
+baseUri: http://localhost:8081
+
+/logistics:
+  get:
+    description: "Returns a Hello World message from logistics service"
+    responses:
+      200:
+        body:
+          application/json:
+            example: |
+              {
+                "message": "Hello from Logistics Service"
+              }

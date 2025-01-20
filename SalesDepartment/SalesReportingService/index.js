@@ -20,6 +20,14 @@ app.get('/report/summary', (req, res) => {
     });
 });
 
+// Dummy endpoint to fetch summary
+app.post('/report/missing', (req, res) => {
+    res.json({
+        summary: 'Reported luggage missing',
+        generatedAt: new Date().toISOString()
+    });
+});
+
 app.listen(PORT, () => {
     console.log(`Sales Reporting Service is running on port ${PORT}`);
 });

@@ -31,26 +31,31 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
         <!-- Routing Logic -->
         <choice>
             <!-- Route to Document Service -->
-            <when expression="#[attributes.requestPath startsWith '/documents']">
-                <set-variable variableName="targetConfig" value="#['http://localhost:8084' ++ attributes.requestPath]"/>
+            <when expression="#[attributes.requestPath startsWith '/datas']">
+                <set-variable variableName="targetConfig" value="#['http://localhost:8084' ++ (attributes.requestPath replace /^\/datas/ with(&quot;&quot;))]"/>
             </when>
 
             <!-- Route to Customer Service -->
-            <when expression="#[attributes.requestPath startsWith '/customers']">
-                <set-variable variableName="targetConfig" value="#['http://localhost:8084' ++ attributes.requestPath]"/>
-            </when>
-
-            <when expression="#[attributes.requestPath startsWith '/marketing']">
-                <set-variable variableName="targetConfig" value="#['http://localhost:8085' ++ attributes.requestPath]"/>
+            <when expression="#[attributes.requestPath contains '/api/flights']">
+                <set-variable variableName="targetConfig" value="#['http://localhost:8081' ++ attributes.requestPath]"/>
             </when>
 
             <!-- Route to External Service -->
-            <when expression="#[attributes.requestPath contains '/report/sales']">
-                <set-variable variableName="targetConfig" value="#['http://localhost:3000' ++ attributes.requestPath]"/>
+            <when expression="#[attributes.requestPath contains '/department']">
+                <set-variable variableName="targetConfig" value="#['http://localhost:8088' ++ attributes.requestPath]"/>
             </when>
 
             <!-- Default Error Handling -->
-            <otherwise>
+            <when expression="#[attributes.requestPath contains '/api/bookings']">
+				<set-variable value="#['http://localhost:8082' ++ attributes.requestPath]" doc:name="Set Variable" doc:id="d6b7b7ab-5095-4013-bdb9-ca97dc0e4fbd" variableName="targetConfig"/>
+			</when>
+			<when expression="#[attributes.requestPath contains '/report/']">
+				<set-variable value="'http://localhost:3000' ++ attributes.requestPath" doc:name="Set Variable" doc:id="fb1e820c-34dc-433f-9d24-a420b6150410" variableName="targetConfig"/>
+			</when>
+			<when expression="#[attributes.requestPath contains '/marketing']">
+				<set-variable value="#['http://localhost:8085' ++ attributes.requestPath]" doc:name="Set Variable" doc:id="f1e1a5ea-f544-44df-8ff2-eb45a78daf00" variableName="targetConfig"/>
+			</when>
+			<otherwise>
                 <set-payload value="#[{ error: 'No matching route found', status: 404 }]"/>
                 
                 <!-- Log the error with the payload -->
@@ -65,5 +70,23 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 			<http:query-params ><![CDATA[#[attributes.queryParams]]]></http:query-params>
 
         </http:request>
-    </flow>
+		<error-handler>
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="4c6aa449-ff7a-49e6-85f2-782ebc4b6067" >
+				<set-variable value="#[error.errorType.identifier]" doc:name="Set Variable" doc:id="44275ec1-72b0-4026-9db0-796e5ce109bb" variableName="httpStatus"/>
+				<ee:transform doc:name="Transform Message" doc:id="8e1cf51b-6013-4e95-a427-37bd63ce18e2" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+{
+  "error": "#[error.message]",
+  "status": "#[vars.httpStatus]"
+}
+]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</on-error-propagate>
+		</error-handler>
+    
+</flow>
 </mule>

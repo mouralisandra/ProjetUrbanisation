@@ -1,0 +1,573 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.29.0">
+  <bpmn:collaboration id="Collaboration_1">
+    <bpmn:participant id="Participant_1" name="Flight Booking Process" processRef="FlightBookingProcess" />
+    <bpmn:participant id="Participant_1lzd7am" name="Baggage Management Process" processRef="Process_1si1jvl" />
+  </bpmn:collaboration>
+  <bpmn:process id="FlightBookingProcess" name="Flight Booking Process" isExecutable="true">
+    <bpmn:serviceTask id="Activity_PriceCalculation" name="Calculate Price">
+      <bpmn:extensionElements>
+        <camunda:connector>
+          <camunda:inputOutput>
+            <camunda:inputParameter name="method">GET</camunda:inputParameter>
+            <camunda:inputParameter name="url">http://localhost:8090/api/flights/${id}</camunda:inputParameter>
+            <camunda:inputParameter name="headers">
+              <camunda:map>
+                <camunda:entry key="accept">application/json</camunda:entry>
+                <camunda:entry key="content-type">application/json</camunda:entry>
+              </camunda:map>
+            </camunda:inputParameter>
+            <camunda:outputParameter name="response">${response}</camunda:outputParameter>
+          </camunda:inputOutput>
+          <camunda:connectorId>http-connector</camunda:connectorId>
+        </camunda:connector>
+        <camunda:executionListener event="end">
+          <camunda:script scriptFormat="JavaScript">var response = execution.getVariable("response");
+java.lang.System.out.println("Response from Calculte price: " + response);</camunda:script>
+        </camunda:executionListener>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_3</bpmn:incoming>
+      <bpmn:outgoing>Flow_4</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Activity_BookFlight" name="Book Flight">
+      <bpmn:extensionElements>
+        <camunda:connector>
+          <camunda:inputOutput>
+            <camunda:inputParameter name="url">http://localhost:8090/api/bookings</camunda:inputParameter>
+            <camunda:inputParameter name="method">POST</camunda:inputParameter>
+            <camunda:inputParameter name="headers">
+              <camunda:map>
+                <camunda:entry key="accept">application/json</camunda:entry>
+                <camunda:entry key="content-type">application/json</camunda:entry>
+              </camunda:map>
+            </camunda:inputParameter>
+            <camunda:outputParameter name="response">${response}</camunda:outputParameter>
+          </camunda:inputOutput>
+          <camunda:connectorId>http-connector</camunda:connectorId>
+        </camunda:connector>
+        <camunda:executionListener event="end">
+          <camunda:script scriptFormat="JavaScript">var response = execution.getVariable("response");
+java.lang.System.out.println("Response from Booking service: " + response);
+</camunda:script>
+        </camunda:executionListener>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_4</bpmn:incoming>
+      <bpmn:outgoing>Flow_1njpf46</bpmn:outgoing>
+      <bpmn:outgoing>Flow_1x36ere</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:userTask id="Activity_02h68st" name="input data">
+      <bpmn:extensionElements>
+        <camunda:formData>
+          <camunda:formField id="id" label="id" type="string">
+            <camunda:validation />
+          </camunda:formField>
+          <camunda:formField id="departure" label="departure" type="string" />
+          <camunda:formField id="arrival " label="arrival" type="string" />
+          <camunda:formField id="date" label="date" type="date" />
+        </camunda:formData>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_1</bpmn:incoming>
+      <bpmn:incoming>Flow_0ir4a35</bpmn:incoming>
+      <bpmn:outgoing>Flow_0xd2ee1</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:serviceTask id="Activity_CustomerCheck" name="Check Customer Data">
+      <bpmn:extensionElements>
+        <camunda:connector>
+          <camunda:inputOutput>
+            <camunda:inputParameter name="url">http://localhost:8090/datas/customers/${id}</camunda:inputParameter>
+            <camunda:inputParameter name="method">GET</camunda:inputParameter>
+            <camunda:inputParameter name="headers">
+              <camunda:map>
+                <camunda:entry key="accept">application/json</camunda:entry>
+                <camunda:entry key="content-type">application/json</camunda:entry>
+              </camunda:map>
+            </camunda:inputParameter>
+            <camunda:outputParameter name="response">${response}</camunda:outputParameter>
+          </camunda:inputOutput>
+          <camunda:connectorId>http-connector</camunda:connectorId>
+        </camunda:connector>
+        <camunda:executionListener event="end">
+          <camunda:script scriptFormat="JavaScript">var response = execution.getVariable("response");
+
+// Log the response for debugging purposes
+java.lang.System.out.println("Response from Data Dep: " + response);
+
+// Check if the last 3 characters of the response are '500' (indicating internal server error)
+if (response &amp;&amp; response.slice(-5) === "500).") {
+    throw new org.camunda.bpm.engine.delegate.BpmnError("ERR_CUSTOMER_NOT_FOUND");
+}</camunda:script>
+        </camunda:executionListener>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_0xd2ee1</bpmn:incoming>
+      <bpmn:outgoing>Flow_2</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Activity_LuggageCheck" name="Check Luggage Limit and Availability">
+      <bpmn:extensionElements>
+        <camunda:connector>
+          <camunda:inputOutput>
+            <camunda:inputParameter name="url">http://localhost:8090/department/logistics</camunda:inputParameter>
+            <camunda:inputParameter name="method">GET</camunda:inputParameter>
+            <camunda:inputParameter name="headers">
+              <camunda:map>
+                <camunda:entry key="accept">application/json</camunda:entry>
+                <camunda:entry key="content-type">application/json</camunda:entry>
+              </camunda:map>
+            </camunda:inputParameter>
+            <camunda:outputParameter name="response">${response}</camunda:outputParameter>
+          </camunda:inputOutput>
+          <camunda:connectorId>http-connector</camunda:connectorId>
+        </camunda:connector>
+        <camunda:executionListener event="end">
+          <camunda:script scriptFormat="JavaScript">var response = execution.getVariable("response");
+java.lang.System.out.println("Response from Logistics: " + response);
+
+
+if (response.includes('not available')) {
+    throw new org.camunda.bpm.engine.delegate.BpmnError("ERR_LUGGAGE_LIMIT_AVAILABILITY");
+}</camunda:script>
+        </camunda:executionListener>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_2</bpmn:incoming>
+      <bpmn:outgoing>Flow_3</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Activity_0lascyg" name="Update reccomendations" camunda:asyncBefore="true" camunda:exclusive="false">
+      <bpmn:extensionElements>
+        <camunda:connector>
+          <camunda:inputOutput>
+            <camunda:inputParameter name="url">http://localhost:8090/marketing</camunda:inputParameter>
+            <camunda:inputParameter name="method">GET</camunda:inputParameter>
+            <camunda:inputParameter name="headers">
+              <camunda:map>
+                <camunda:entry key="content-type">application/json</camunda:entry>
+                <camunda:entry key="accept">application/json</camunda:entry>
+              </camunda:map>
+            </camunda:inputParameter>
+            <camunda:outputParameter name="response">${response}</camunda:outputParameter>
+          </camunda:inputOutput>
+          <camunda:connectorId>http-connector</camunda:connectorId>
+        </camunda:connector>
+        <camunda:executionListener event="start">
+          <camunda:script scriptFormat="JavaScript">java.lang.System.out.println("Started updating reccomendations in advertisement service: " );
+</camunda:script>
+        </camunda:executionListener>
+        <camunda:executionListener event="end">
+          <camunda:script scriptFormat="JavaScript">java.lang.System.out.println("Response of advertisement service: " + response);
+</camunda:script>
+        </camunda:executionListener>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_1njpf46</bpmn:incoming>
+      <bpmn:outgoing>Flow_1p06wek</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Activity_1a0ihjv" name="Track Analytics Event" camunda:asyncBefore="true" camunda:exclusive="false">
+      <bpmn:extensionElements>
+        <camunda:connector>
+          <camunda:inputOutput>
+            <camunda:inputParameter name="url">http://localhost:8090/marketing</camunda:inputParameter>
+            <camunda:inputParameter name="method">GET</camunda:inputParameter>
+            <camunda:inputParameter name="headers">
+              <camunda:map>
+                <camunda:entry key="content-type">application/json</camunda:entry>
+                <camunda:entry key="accept">application/json</camunda:entry>
+              </camunda:map>
+            </camunda:inputParameter>
+            <camunda:outputParameter name="response">${response}</camunda:outputParameter>
+          </camunda:inputOutput>
+          <camunda:connectorId>http-connector</camunda:connectorId>
+        </camunda:connector>
+        <camunda:executionListener event="start">
+          <camunda:script scriptFormat="JavaScript">java.lang.System.out.println("Started tracking analysitcs event in marketing and analysis service: ");
+</camunda:script>
+        </camunda:executionListener>
+        <camunda:executionListener event="end">
+          <camunda:script scriptFormat="JavaScript">java.lang.System.out.println("Response of analytics  service: "+response);
+</camunda:script>
+        </camunda:executionListener>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_1x36ere</bpmn:incoming>
+      <bpmn:outgoing>Flow_1fmahil</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:endEvent id="Event_1q7d4i7">
+      <bpmn:incoming>Flow_1p06wek</bpmn:incoming>
+      <bpmn:incoming>Flow_1fmahil</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:startEvent id="StartEvent_1" name="Booking Request Received">
+      <bpmn:extensionElements>
+        <camunda:formData />
+      </bpmn:extensionElements>
+      <bpmn:outgoing>Flow_1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:boundaryEvent id="Event_13s1bzu" attachedToRef="Activity_BookFlight">
+      <bpmn:outgoing>Flow_1ophqp8</bpmn:outgoing>
+      <bpmn:errorEventDefinition id="ErrorEventDefinition_1y9ret6" errorRef="Error_13bol9z" />
+    </bpmn:boundaryEvent>
+    <bpmn:boundaryEvent id="Event_0oeqr6g" attachedToRef="Activity_CustomerCheck">
+      <bpmn:extensionElements>
+        <camunda:executionListener event="start">
+          <camunda:script scriptFormat="JavaScript">java.lang.System.out.println("Error in Check customer Data. please reinput!");</camunda:script>
+        </camunda:executionListener>
+      </bpmn:extensionElements>
+      <bpmn:outgoing>Flow_0ir4a35</bpmn:outgoing>
+      <bpmn:errorEventDefinition id="ErrorEventDefinition_0j3x4z5" errorRef="Error_12zflez" camunda:errorMessageVariable="error" />
+    </bpmn:boundaryEvent>
+    <bpmn:sequenceFlow id="Flow_3" sourceRef="Activity_LuggageCheck" targetRef="Activity_PriceCalculation" />
+    <bpmn:sequenceFlow id="Flow_4" sourceRef="Activity_PriceCalculation" targetRef="Activity_BookFlight" />
+    <bpmn:sequenceFlow id="Flow_1njpf46" sourceRef="Activity_BookFlight" targetRef="Activity_0lascyg" />
+    <bpmn:sequenceFlow id="Flow_1x36ere" sourceRef="Activity_BookFlight" targetRef="Activity_1a0ihjv" />
+    <bpmn:sequenceFlow id="Flow_1" sourceRef="StartEvent_1" targetRef="Activity_02h68st" />
+    <bpmn:sequenceFlow id="Flow_0ir4a35" sourceRef="Event_0oeqr6g" targetRef="Activity_02h68st" />
+    <bpmn:sequenceFlow id="Flow_0xd2ee1" sourceRef="Activity_02h68st" targetRef="Activity_CustomerCheck" />
+    <bpmn:sequenceFlow id="Flow_2" sourceRef="Activity_CustomerCheck" targetRef="Activity_LuggageCheck" />
+    <bpmn:sequenceFlow id="Flow_1p06wek" sourceRef="Activity_0lascyg" targetRef="Event_1q7d4i7" />
+    <bpmn:sequenceFlow id="Flow_1fmahil" sourceRef="Activity_1a0ihjv" targetRef="Event_1q7d4i7" />
+    <bpmn:boundaryEvent id="Event_1gmw3jd" attachedToRef="Activity_PriceCalculation">
+      <bpmn:outgoing>Flow_1uggn9m</bpmn:outgoing>
+      <bpmn:errorEventDefinition id="ErrorEventDefinition_0ikn2tc" errorRef="Error_0d9t8dw" />
+    </bpmn:boundaryEvent>
+    <bpmn:boundaryEvent id="Event_1r7f9dr" attachedToRef="Activity_LuggageCheck">
+      <bpmn:outgoing>Flow_02hoe8f</bpmn:outgoing>
+      <bpmn:errorEventDefinition id="ErrorEventDefinition_11rbv6r" errorRef="Error_031eo6m" />
+    </bpmn:boundaryEvent>
+    <bpmn:sequenceFlow id="Flow_02hoe8f" sourceRef="Event_1r7f9dr" targetRef="Event_1indt2z" />
+    <bpmn:endEvent id="Event_1indt2z">
+      <bpmn:incoming>Flow_02hoe8f</bpmn:incoming>
+      <bpmn:errorEventDefinition id="ErrorEventDefinition_154v9vi" errorRef="Error_031eo6m" />
+    </bpmn:endEvent>
+    <bpmn:endEvent id="Event_13vf9jt">
+      <bpmn:incoming>Flow_1uggn9m</bpmn:incoming>
+      <bpmn:errorEventDefinition id="ErrorEventDefinition_08g1qy5" errorRef="Error_0d9t8dw" />
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_1uggn9m" sourceRef="Event_1gmw3jd" targetRef="Event_13vf9jt" />
+    <bpmn:sequenceFlow id="Flow_1ophqp8" sourceRef="Event_13s1bzu" targetRef="Event_0ecejz6" />
+    <bpmn:endEvent id="Event_0ecejz6">
+      <bpmn:incoming>Flow_1ophqp8</bpmn:incoming>
+      <bpmn:errorEventDefinition id="ErrorEventDefinition_1bl7uw7" errorRef="Error_13bol9z" />
+    </bpmn:endEvent>
+  </bpmn:process>
+  <bpmn:error id="Error_1liqc3j" name="Internal server error " errorCode="500" camunda:errorMessage="Customer not found." />
+  <bpmn:error id="Error_0dzl4u4" name="ERR_BOOK_FLIGHT" errorCode="ERR_BOOK_FLIGHT" camunda:errorMessage="error occured when booking " />
+  <bpmn:error id="Error_12zflez" name="ERR_CUSTOMER_NOT_FOUND" errorCode="ERR_CUSTOMER_NOT_FOUND" camunda:errorMessage="oops" />
+  <bpmn:error id="Error_031eo6m" name="ERR_LUGGAGE_LIMIT_AVAILABILITY" errorCode="ERR_LUGGAGE_LIMIT_AVAILABILITY" />
+  <bpmn:error id="Error_0d9t8dw" name="ERR_CALCULATE_PRICE" errorCode="ERR_CALCULATE_PRICE" />
+  <bpmn:error id="Error_13bol9z" name="ERR_BOOK_FLIGHT" errorCode="ERR_BOOK_FLIGHT" />
+  <bpmn:process id="Process_1si1jvl" isExecutable="false">
+    <bpmn:startEvent id="Event_1aef54q" name="report missing baggage">
+      <bpmn:outgoing>Flow_0wjiml8</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:serviceTask id="Activity_1nnlljv" name="track baggage">
+      <bpmn:extensionElements>
+        <camunda:connector>
+          <camunda:inputOutput>
+            <camunda:inputParameter name="url">http://localhost:8090/department/tracking</camunda:inputParameter>
+            <camunda:inputParameter name="method">GET</camunda:inputParameter>
+            <camunda:inputParameter name="headers">
+              <camunda:map>
+                <camunda:entry key="accept">application/json</camunda:entry>
+                <camunda:entry key="content-type">application/json</camunda:entry>
+              </camunda:map>
+            </camunda:inputParameter>
+            <camunda:outputParameter name="response">${response}</camunda:outputParameter>
+          </camunda:inputOutput>
+          <camunda:connectorId>http-connector</camunda:connectorId>
+        </camunda:connector>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_0wjiml8</bpmn:incoming>
+      <bpmn:outgoing>Flow_0bksw0c</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="Gateway_0dlju8r" name="baggage found?">
+      <bpmn:incoming>Flow_0bksw0c</bpmn:incoming>
+      <bpmn:outgoing>Flow_1bsjr79</bpmn:outgoing>
+      <bpmn:outgoing>Flow_0i3x9dv</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_0bksw0c" sourceRef="Activity_1nnlljv" targetRef="Gateway_0dlju8r" />
+    <bpmn:sequenceFlow id="Flow_1bsjr79" name="yes" sourceRef="Gateway_0dlju8r" targetRef="Activity_0a12ig5">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${baggageFound == true}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_0i3x9dv" name="no" sourceRef="Gateway_0dlju8r" targetRef="Activity_09wgkvf">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${baggageFound == false}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:serviceTask id="Activity_09wgkvf" name="report issue in the system">
+      <bpmn:extensionElements>
+        <camunda:connector>
+          <camunda:inputOutput>
+            <camunda:inputParameter name="url">localhost:8090/report/missing</camunda:inputParameter>
+            <camunda:inputParameter name="method">POST</camunda:inputParameter>
+            <camunda:inputParameter name="headers">
+              <camunda:map>
+                <camunda:entry key="accept">application/json</camunda:entry>
+                <camunda:entry key="content-type">application/json</camunda:entry>
+              </camunda:map>
+            </camunda:inputParameter>
+            <camunda:outputParameter name="response">${response}</camunda:outputParameter>
+          </camunda:inputOutput>
+          <camunda:connectorId>http-connector</camunda:connectorId>
+        </camunda:connector>
+        <camunda:executionListener event="end">
+          <camunda:script scriptFormat="JavaScript">java.lang.System.out.println("luggage reported at " + response.generatedAt);
+</camunda:script>
+        </camunda:executionListener>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_0i3x9dv</bpmn:incoming>
+      <bpmn:outgoing>Flow_0nuac4j</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:endEvent id="Event_0vuybzk">
+      <bpmn:incoming>Flow_12ot6n7</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_12ot6n7" sourceRef="Activity_0a12ig5" targetRef="Event_0vuybzk" />
+    <bpmn:sequenceFlow id="Flow_0nuac4j" sourceRef="Activity_09wgkvf" targetRef="Activity_1j7mrer" />
+    <bpmn:serviceTask id="Activity_1j7mrer" name="generate compensation invoice">
+      <bpmn:extensionElements>
+        <camunda:connector>
+          <camunda:inputOutput>
+            <camunda:inputParameter name="url">http://localhost:8090/datas/documents</camunda:inputParameter>
+            <camunda:inputParameter name="method">POST</camunda:inputParameter>
+            <camunda:inputParameter name="headers">
+              <camunda:map>
+                <camunda:entry key="accept">vapplication/json</camunda:entry>
+                <camunda:entry key="content-type">application/json</camunda:entry>
+              </camunda:map>
+            </camunda:inputParameter>
+            <camunda:inputParameter name="payload">
+              <camunda:script scriptFormat="JSON">{"ID": "", "Isbn": "43527", "Title": "Compensation invoice", "Author": {"Firstname": "john", "Lastname": "doe"}}</camunda:script>
+            </camunda:inputParameter>
+          </camunda:inputOutput>
+          <camunda:connectorId>http-connector</camunda:connectorId>
+        </camunda:connector>
+        <camunda:inputOutput>
+          <camunda:outputParameter name="reponse">${reponse}</camunda:outputParameter>
+        </camunda:inputOutput>
+        <camunda:executionListener expression="Compensation invoice generated! We are sorry for the inconvenience :(" event="end" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_0nuac4j</bpmn:incoming>
+      <bpmn:outgoing>Flow_11r547s</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:endEvent id="Event_16oqiax">
+      <bpmn:incoming>Flow_11r547s</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_11r547s" sourceRef="Activity_1j7mrer" targetRef="Event_16oqiax" />
+    <bpmn:sequenceFlow id="Flow_0wjiml8" sourceRef="Event_1aef54q" targetRef="Activity_1nnlljv" />
+    <bpmn:serviceTask id="Activity_0a12ig5" name="schedule delivery">
+      <bpmn:extensionElements>
+        <camunda:connector>
+          <camunda:inputOutput>
+            <camunda:inputParameter name="url">http://localhost:8090/department/logistics</camunda:inputParameter>
+            <camunda:inputParameter name="headers">
+              <camunda:map>
+                <camunda:entry key="accept">application/json</camunda:entry>
+                <camunda:entry key="content-type">application/json</camunda:entry>
+              </camunda:map>
+            </camunda:inputParameter>
+            <camunda:inputParameter name="method">POST</camunda:inputParameter>
+            <camunda:outputParameter name="response">${response}</camunda:outputParameter>
+          </camunda:inputOutput>
+          <camunda:connectorId>http-connector</camunda:connectorId>
+        </camunda:connector>
+        <camunda:executionListener expression="delivery scheduled! we will get you your luggage soon." event="end" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_1bsjr79</bpmn:incoming>
+      <bpmn:outgoing>Flow_12ot6n7</bpmn:outgoing>
+    </bpmn:serviceTask>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Collaboration_1">
+      <bpmndi:BPMNShape id="Participant_1_di" bpmnElement="Participant_1" isHorizontal="true">
+        <dc:Bounds x="160" y="80" width="1290" height="400" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_PriceCalculation_di" bpmnElement="Activity_PriceCalculation">
+        <dc:Bounds x="760" y="260" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_BookFlight_di" bpmnElement="Activity_BookFlight">
+        <dc:Bounds x="910" y="260" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1qejaw2_di" bpmnElement="Activity_02h68st">
+        <dc:Bounds x="290" y="260" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_CustomerCheck_di" bpmnElement="Activity_CustomerCheck">
+        <dc:Bounds x="440" y="260" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_LuggageCheck_di" bpmnElement="Activity_LuggageCheck">
+        <dc:Bounds x="600" y="260" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0xcj10l_di" bpmnElement="Activity_0lascyg">
+        <dc:Bounds x="1160" y="200" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_0vk805b" bpmnElement="Activity_1a0ihjv">
+        <dc:Bounds x="1160" y="350" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1q7d4i7_di" bpmnElement="Event_1q7d4i7">
+        <dc:Bounds x="1392" y="292" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="StartEvent_1_di" bpmnElement="StartEvent_1">
+        <dc:Bounds x="202" y="282" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="197" y="325" width="85" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1g4jps1_di" bpmnElement="Event_1indt2z">
+        <dc:Bounds x="662" y="142" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="786" y="355" width="8" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1t0hspc_di" bpmnElement="Event_13vf9jt">
+        <dc:Bounds x="822" y="142" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_06k2sie_di" bpmnElement="Event_0ecejz6">
+        <dc:Bounds x="972" y="142" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_13s1bzu_di" bpmnElement="Event_13s1bzu">
+        <dc:Bounds x="972" y="242" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0oeqr6g_di" bpmnElement="Event_0oeqr6g">
+        <dc:Bounds x="502" y="242" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1gmw3jd_di" bpmnElement="Event_1gmw3jd">
+        <dc:Bounds x="822" y="242" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1r7f9dr_di" bpmnElement="Event_1r7f9dr">
+        <dc:Bounds x="662" y="242" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_3_di" bpmnElement="Flow_3">
+        <di:waypoint x="700" y="300" />
+        <di:waypoint x="760" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_4_di" bpmnElement="Flow_4">
+        <di:waypoint x="860" y="300" />
+        <di:waypoint x="910" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1njpf46_di" bpmnElement="Flow_1njpf46">
+        <di:waypoint x="1010" y="300" />
+        <di:waypoint x="1095" y="300" />
+        <di:waypoint x="1095" y="240" />
+        <di:waypoint x="1160" y="240" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1x36ere_di" bpmnElement="Flow_1x36ere">
+        <di:waypoint x="1010" y="300" />
+        <di:waypoint x="1090" y="300" />
+        <di:waypoint x="1090" y="390" />
+        <di:waypoint x="1160" y="390" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1_di" bpmnElement="Flow_1">
+        <di:waypoint x="238" y="300" />
+        <di:waypoint x="290" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0ir4a35_di" bpmnElement="Flow_0ir4a35">
+        <di:waypoint x="520" y="242" />
+        <di:waypoint x="520" y="222" />
+        <di:waypoint x="340" y="222" />
+        <di:waypoint x="340" y="260" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0xd2ee1_di" bpmnElement="Flow_0xd2ee1">
+        <di:waypoint x="390" y="300" />
+        <di:waypoint x="440" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_2_di" bpmnElement="Flow_2">
+        <di:waypoint x="540" y="300" />
+        <di:waypoint x="600" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1p06wek_di" bpmnElement="Flow_1p06wek">
+        <di:waypoint x="1260" y="240" />
+        <di:waypoint x="1326" y="240" />
+        <di:waypoint x="1326" y="310" />
+        <di:waypoint x="1392" y="310" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1fmahil_di" bpmnElement="Flow_1fmahil">
+        <di:waypoint x="1260" y="390" />
+        <di:waypoint x="1330" y="390" />
+        <di:waypoint x="1330" y="310" />
+        <di:waypoint x="1392" y="310" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_02hoe8f_di" bpmnElement="Flow_02hoe8f">
+        <di:waypoint x="680" y="242" />
+        <di:waypoint x="680" y="178" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1uggn9m_di" bpmnElement="Flow_1uggn9m">
+        <di:waypoint x="840" y="242" />
+        <di:waypoint x="840" y="178" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1ophqp8_di" bpmnElement="Flow_1ophqp8">
+        <di:waypoint x="990" y="242" />
+        <di:waypoint x="990" y="178" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Participant_1lzd7am_di" bpmnElement="Participant_1lzd7am" isHorizontal="true">
+        <dc:Bounds x="160" y="560" width="858" height="320" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1aef54q_di" bpmnElement="Event_1aef54q">
+        <dc:Bounds x="212" y="652" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="199" y="695" width="70" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1562uua_di" bpmnElement="Activity_1nnlljv">
+        <dc:Bounds x="300" y="630" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_0dlju8r_di" bpmnElement="Gateway_0dlju8r" isMarkerVisible="true">
+        <dc:Bounds x="455" y="645" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="440" y="621" width="80" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1qz15qr_di" bpmnElement="Activity_09wgkvf">
+        <dc:Bounds x="560" y="740" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0vuybzk_di" bpmnElement="Event_0vuybzk">
+        <dc:Bounds x="882" y="652" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="875" y="695" width="50" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0s6k0av_di" bpmnElement="Activity_1j7mrer">
+        <dc:Bounds x="720" y="740" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_16oqiax_di" bpmnElement="Event_16oqiax">
+        <dc:Bounds x="882" y="762" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1r7lt6h_di" bpmnElement="Activity_0a12ig5">
+        <dc:Bounds x="620" y="630" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_0bksw0c_di" bpmnElement="Flow_0bksw0c">
+        <di:waypoint x="400" y="670" />
+        <di:waypoint x="455" y="670" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1bsjr79_di" bpmnElement="Flow_1bsjr79">
+        <di:waypoint x="505" y="670" />
+        <di:waypoint x="620" y="670" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="517" y="652" width="17" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0i3x9dv_di" bpmnElement="Flow_0i3x9dv">
+        <di:waypoint x="480" y="695" />
+        <di:waypoint x="480" y="780" />
+        <di:waypoint x="560" y="780" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="489" y="735" width="13" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_12ot6n7_di" bpmnElement="Flow_12ot6n7">
+        <di:waypoint x="720" y="670" />
+        <di:waypoint x="882" y="670" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0nuac4j_di" bpmnElement="Flow_0nuac4j">
+        <di:waypoint x="660" y="780" />
+        <di:waypoint x="720" y="780" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_11r547s_di" bpmnElement="Flow_11r547s">
+        <di:waypoint x="820" y="780" />
+        <di:waypoint x="882" y="780" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0wjiml8_di" bpmnElement="Flow_0wjiml8">
+        <di:waypoint x="248" y="670" />
+        <di:waypoint x="300" y="670" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

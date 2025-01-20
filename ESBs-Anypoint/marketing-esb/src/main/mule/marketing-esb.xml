@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:wsc="http://www.mulesoft.org/schema/mule/wsc" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/wsc http://www.mulesoft.org/schema/mule/wsc/current/mule-wsc.xsd">
+	<http:listener-config name="HTTP_Listener_configESB" doc:name="HTTP Listener config" doc:id="4e40e493-c0db-40d2-9e43-8f08bccb59b2" >
+		<http:listener-connection host="0.0.0.0" port="8085" />
+	</http:listener-config>
+	<wsc:config name="Web_Service_Consumer_Config1" doc:name="Web Service Consumer Config" doc:id="bffb8cca-3ea9-410f-b581-b272435992b3" >
+		<wsc:connection wsdlLocation="AdvertisementService.wsdl" service="AdvertisementService" port="AdvertisementServicePort" address="localhost:8086/advertisementService" >
+			<wsc:web-service-security actor="http://schemas.xmlsoap.org/soap/actor/next" />
+		</wsc:connection>
+	</wsc:config>
+	<wsc:config name="Web_Service_Consumer_Config2" doc:name="Web Service Consumer Config" doc:id="3c8af834-452d-458e-8058-5b07b074e120" >
+		<wsc:connection wsdlLocation="AnalysisService.wsdl" service="MarketingAnalysisService" port="MarketingAnalysisServicePort" address="http://localhost:8087/marketingAnalysisService" />
+	</wsc:config>
+	<flow name="marketingdepartmentesbFlow" doc:id="3633a4be-fd65-4e84-a57e-d39849c3bbce" >
+		<http:listener doc:name="Listener" doc:id="6ad7d945-5af1-43e9-bed6-ca6f84cd9976" config-ref="HTTP_Listener_configESB" path="/marketing"/>
+		<set-variable value="#[attributes.queryParams.adId default '123']" doc:name="Set adId Variable" doc:id="a910873c-c495-4c7b-9918-6c3d0c6de91e" variableName="adId"/>
+		<wsc:consume doc:name="Call Advertisement Service" doc:id="6974d47c-ecce-4a17-bfcc-1def0d64f7ba" config-ref="Web_Service_Consumer_Config1" operation="getAdvertisement">
+			<wsc:message >
+				<wsc:body ><![CDATA[#[output application/xml
+ns ns0 http://example.com/advertisement
+---
+{
+	ns0#getAdvertisementRequest: {
+		adId: vars.adId
+	}
+}]]]></wsc:body>
+			</wsc:message>
+		</wsc:consume>
+		<set-payload value='#[%dw 2.0&#10;ns ns0 http://example.com/advertisement&#10;---&#10;{&#10;	 "campaignId": "CAMPAIGN-001",&#10;	 "advertisementTitle": payload.body.ns0#getAdvertisementResponse.adTitle,&#10;	 "advertisementContent": payload.body.ns0#getAdvertisementResponse.adContent&#10; }]' doc:name="Prepare Marketing Analysis Request" doc:id="b4be88cc-660b-4fbc-8805-7a032e542073" />
+		<wsc:consume doc:name="Call Marketing Analysis Service" doc:id="aa1d9bfe-ea08-48a1-878b-91729da18d6e" config-ref="Web_Service_Consumer_Config2" operation="analyzeCampaign">
+			<wsc:message >
+				<wsc:body ><![CDATA[#[output application/xml
+ns ns0 http://example.com/marketinganalysis
+---
+{
+	ns0#analyzeCampaignRequest: {
+		campaignId: payload.campaignId,
+		advertisementTitle: payload.advertisementTitle,
+		advertisementContent: payload.advertisementContent
+	}
+}]]]></wsc:body>
+			</wsc:message>
+		</wsc:consume>
+		<logger level="INFO" doc:name="Log Response" doc:id="c669d181-cc04-4fa3-b724-6540ed6ba290" message="Final marketing analysis result: #[payload.analysisResult]"/>
+		<set-payload value="#[%dw 2.0&#10;ns ns0 http://example.com/marketinganalysis&#10;---&#10;payload.body.ns0#analyzeCampaignResponse.analysisResult]" doc:name="Set HTTP response" doc:id="f58ee254-498b-462c-88cd-2bde59fcdf01" />
+	</flow>
+</mule>
